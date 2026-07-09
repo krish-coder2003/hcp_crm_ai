@@ -1,0 +1,165 @@
+# AI-First CRM — HCP Interaction Module (Log Interaction Screen)
+
+An AI-first "Log HCP Interaction" screen for pharma field reps. The left panel is a
+**read-only** interaction form; the right panel is an **AI Assistant chat**. Every field on
+the form is populated and edited exclusively by a LangGraph agent — there is no manual
+form-filling, per the assignment's automation requirement.
+
+```
+┌────────────────────────────┬───────────────────────┐
+│  Interaction Details (RO)  │   AI Assistant (chat)  │
+│  HCP, date/time, topics,   │   "Met Dr. Sharma,      │
+│  materials, sentiment,     │    discussed..."   ───▶│
+│  outcomes, follow-ups      │◀── form updates live    │
+└────────────────────────────┴───────────────────────┘
+```
+
+## Tech stack
+
+| Layer      | Choice                                              |
+|------------|------------------------------------------------------|
+| Frontend   | React 18 + Redux Toolkit, Vite, Google Inter font    |
+| Backend    | Python + FastAPI                                     |
+| AI agent   | LangGraph (ReAct-style tool-calling loop)             |
+| LLM        | Groq `gemma2-9b-it` (routing + extraction), `llama-3.3-70b-versatile` as a documented fallback |
+| Database   | Postgres (SQLAlchemy ORM; MySQL also works — see note below) |
+
+## Architecture
+
+### The agent's role
+
+The LangGraph agent is the **only** thing that reads or writes the Interaction Details
+form. The frontend never mutates form state directly; it sends every user chat message to
+`POST /api/chat` along with the form's current snapshot, and renders whatever
+`updated_state` comes back. This is what makes the screen "AI-first" rather than a normal
+form with an AI helper bolted on.
+
+The graph itself is a standard ReAct loop:
+
+```
+START → agent (Groq LLM + tools bound) → tools_condition
+              ↑                              │
+              └──────────── tools ◀──────────┘ (if a tool was called)
+                              │
+                             END (once the LLM replies with no further tool call)
+```
+
+- **`agent` node** — `gemma2-9b-it` with all 5 tools bound via `bind_tools`. It decides
+  *which single tool* best matches the rep's message (see system prompt in
+  `backend/app/agent/graph.py`).
+- **`tools` node** — a LangGraph `ToolNode` that actually executes the selected tool. Each
+  tool returns a `Command(update={...})`, which is how a tool call directly mutates the
+  shared `form` state that flows back to the frontend (see `backend/app/agent/tools.py`).
+- Control loops back to `agent` so it can give a one-line confirmation of what changed,
+  then the graph ends.
+
+### The 5 LangGraph tools
+
+| Tool | Purpose |
+|------|---------|
+| **`log_interaction`** *(required)* | Takes a free-text note (e.g. *"Met Dr. Sharma, discussed Product X efficacy, positive sentiment, shared brochure"*) and calls the LLM to extract structured fields (HCP name, date/time, topics, sentiment, materials, samples). Creates a new `Interaction` row and returns the full populated form. |
+| **`edit_interaction`** *(required)* | Takes an instruction (e.g. *"change sentiment to positive and add Dr. Rao to attendees"*) plus the current form as context, asks the LLM for only the fields that should change, merges them in, and updates the existing DB row — everything else is left untouched. |
+| **`suggest_followups`** | Reads the current topics/outcomes/sentiment and asks the LLM for 2–4 concrete next-step suggestions, populating the "AI Suggested Follow-ups" list under the form (mirrors the mockup). |
+| **`search_and_add_catalog_item`** | Searches the `materials`/`samples` catalog tables for a keyword (e.g. *"OncoBoost brochure"*) and appends the best match to `materials_shared` or `samples_distributed`. Falls back to adding the raw text if no catalog match exists. |
+| **`summarize_voice_note`** | Summarizes a long dictated/voice-note transcript into concise bullet points and appends them to `topics_discussed` — this is the "Summarize from Voice Note" button in the mockup. |
+
+Extraction and summarization inside tools use a separate, low-temperature Groq LLM
+instance (`get_extraction_llm` in `app/agent/llm.py`) from the routing LLM used by the
+`agent` node, so each can be prompt-tuned independently.
+
+### Data model
+
+`backend/app/models.py` — `HCP`, `Material`, `Sample`, `Interaction` (SQLAlchemy). IDs are
+plain UUID strings and JSON columns use the generic `sqlalchemy.JSON` type rather than a
+Postgres-only type, so the same models work against MySQL if you'd rather use that (per
+the assignment, either is acceptable) — just point `DATABASE_URL` at a MySQL driver
+(e.g. `mysql+pymysql://...`) and install `pymysql` instead of `psycopg2-binary`.
+
+## Running it locally
+
+### 1. Backend
+
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+Edit `.env`:
+- `GROQ_API_KEY` — create one at https://console.groq.com/keys
+- `DATABASE_URL` — point at your Postgres instance (a free one from Neon/Supabase works fine)
+
+```bash
+python seed_data.py   # seeds demo HCPs / materials / samples (Dr. Sharma, OncoBoost, etc.)
+uvicorn app.main:app --reload --port 8000
+```
+
+The API is now at `http://localhost:8000` (health check: `GET /api/health`).
+
+### 2. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. If your backend isn't on `localhost:8000`, set
+`VITE_API_BASE_URL` in a `frontend/.env` file.
+
+### 3. Try it
+
+In the chat panel, type e.g.:
+- *"Met Dr. Sharma at City Hospital, discussed OncoBoost Phase III data, positive sentiment"*
+  → `log_interaction` populates the whole form.
+- *"Add the OncoBoost brochure to materials shared"* → `search_and_add_catalog_item`.
+- *"Change the sentiment to neutral"* → `edit_interaction`.
+- *"Suggest some follow-ups"* → `suggest_followups`.
+- Paste a long rambling note and say *"summarize that voice note into topics discussed"*
+  → `summarize_voice_note`.
+
+## Project structure
+
+```
+backend/
+  app/
+    main.py            FastAPI app, CORS, table creation
+    config.py           env-driven settings
+    database.py          SQLAlchemy engine/session
+    models.py             HCP / Material / Sample / Interaction
+    schemas.py             Pydantic request/response shapes
+    agent/
+      llm.py               Groq chat + extraction LLM factories
+      state.py             LangGraph AgentState (messages, form, tool_calls_made)
+      tools.py             the 5 tools (Command-based state updates)
+      graph.py             StateGraph wiring (agent ⇄ tools loop)
+    routers/
+      chat.py              POST /api/chat — drives the agent
+      interactions.py      read-only listing endpoints
+  seed_data.py            demo catalog data
+  requirements.txt
+  .env.example
+
+frontend/
+  src/
+    store/                 Redux Toolkit: interactionSlice (form), chatSlice (messages)
+    api/client.js           fetch wrapper for /api/chat
+    components/
+      LogInteractionScreen.jsx   split-screen layout
+      InteractionForm.jsx         read-only left panel
+      ChatPanel.jsx                right panel chat UI
+    styles/index.css         Inter font + layout matching the provided mockup
+```
+
+## Notes / known limitations
+
+- Conversation memory across turns uses LangGraph's in-memory `MemorySaver`, keyed by a
+  per-browser-session `thread_id` generated on the frontend. Swap in a persistent
+  checkpointer (Postgres/Redis) for multi-instance deployments.
+- `log_interaction` always creates a *new* interaction; the agent's system prompt tells it
+  to only call `log_interaction` once per session and use `edit_interaction` afterward,
+  but this is a prompt-level rule, not enforced in code — a real production build would
+  track "is there an active draft interaction" explicitly rather than relying on the LLM.
+- Voice-to-text itself is out of scope (the task's "Requires Consent" button implies
+  consent/recording is handled upstream); `summarize_voice_note` takes transcript text.
