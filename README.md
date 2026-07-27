@@ -22,7 +22,7 @@ form-filling, per the assignment's automation requirement.
 | Backend    | Python + FastAPI                                     |
 | AI agent   | LangGraph (ReAct-style tool-calling loop)             |
 | LLM        | Groq `gemma2-9b-it` (routing + extraction), `llama-3.3-70b-versatile` as a documented fallback |
-| Database   | Postgres (SQLAlchemy ORM; MySQL also works — see note below) |
+| Database   | Postgres (FastAPI + Async SQLAlchemy ORM using asyncpg; SQLite/aiosqlite for testing) |
 
 ## Architecture
 
@@ -90,14 +90,27 @@ Edit `.env`:
 - `GROQ_API_KEY` — create one at https://console.groq.com/keys
 - `DATABASE_URL` — point at your Postgres instance (a free one from Neon/Supabase works fine)
 
+Before running the server, apply database schema migrations:
 ```bash
-python seed_data.py   # seeds demo HCPs / materials / samples (Dr. Sharma, OncoBoost, etc.)
+alembic upgrade head
+```
+
+Then seed demo data and start the FastAPI server:
+```bash
+python seed_data.py   # seeds demo HCPs / materials / samples
 uvicorn app.main:app --reload --port 8000
 ```
 
-The API is now at `http://localhost:8000` (health check: `GET /api/health`).
+The API is running at `http://localhost:8000` (health check: `GET /api/v1/health` or `/api/health`).
 
-### 2. Frontend
+### 2. Running Tests
+
+To run the automated `pytest` test suite:
+```bash
+pytest -v
+```
+
+### 3. Frontend
 
 ```bash
 cd frontend
