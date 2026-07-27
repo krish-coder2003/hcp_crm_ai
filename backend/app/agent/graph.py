@@ -1,7 +1,7 @@
 from langchain_core.messages import SystemMessage
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode, tools_condition
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent.state import AgentState
 from app.agent.llm import get_chat_llm
@@ -25,7 +25,7 @@ SYSTEM_PROMPT = SystemMessage(
 )
 
 
-def build_agent_graph(db: Session, checkpointer=None):
+def build_agent_graph(db: AsyncSession, checkpointer=None):
     """Builds and compiles the LangGraph agent used to power the chat panel.
 
     Graph shape (standard ReAct loop):
@@ -42,11 +42,11 @@ def build_agent_graph(db: Session, checkpointer=None):
     tools = build_tools(db)
     llm_with_tools = get_chat_llm().bind_tools(tools)
 
-    def agent_node(state: AgentState):
+    async def agent_node(state: AgentState):
         messages = state["messages"]
         if not messages or not isinstance(messages[0], SystemMessage):
             messages = [SYSTEM_PROMPT] + messages
-        response = llm_with_tools.invoke(messages)
+        response = await llm_with_tools.ainvoke(messages)
         return {"messages": [response]}
 
     graph = StateGraph(AgentState)

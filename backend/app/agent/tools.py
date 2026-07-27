@@ -9,7 +9,8 @@ from langchain_core.tools.base import InjectedToolCallId
 from langchain_core.messages import ToolMessage, SystemMessage, HumanMessage
 from langgraph.prebuilt import InjectedState
 from langgraph.types import Command
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent.llm import get_extraction_llm
 from app.agent.state import AgentState
@@ -46,8 +47,8 @@ that are clearly mentioned or implied in the text. Omit keys you cannot infer:
 """
 
 
-def build_tools(db: Session):
-    """Factory that builds the 5 LangGraph tools, closing over a DB session.
+def build_tools(db: AsyncSession):
+    """Factory that builds the 5 LangGraph tools, closing over an async DB session.
     Each tool returns a `Command` that updates the shared `form` state (and
     optionally persists to Postgres), which is how the tool's work ends up
     reflected on the read-only form the user sees.
@@ -59,7 +60,7 @@ def build_tools(db: Session):
     # Tool 1 (required): Log Interaction
     # ---------------------------------------------------------------
     @tool
-    def log_interaction(
+    async def log_interaction(
         details: str,
         state: Annotated[AgentState, InjectedState],
         tool_call_id: Annotated[str, InjectedToolCallId],
@@ -72,7 +73,7 @@ def build_tools(db: Session):
         materials, etc.) via the LLM and populates the Interaction Details form.
         """
         prompt = f"Extract HCP interaction details from this note:\n\n{details}\n\n{FORM_FIELDS_SPEC}"
-        resp = extraction_llm.invoke(
+        resp = await extraction_llm.ainvoke(
             [
                 SystemMessage(content="You extract structured CRM data for pharma sales reps. Reply with JSON only."),
                 HumanMessage(content=prompt),
@@ -112,7 +113,7 @@ def build_tools(db: Session):
             follow_up_actions=new_form.get("follow_up_actions"),
         )
         db.add(row)
-        db.commit()
+        await db.commit()
 
         summary = f"Logged interaction with {new_form.get('hcp_name') or 'HCP'} on {new_form.get('date')}."
         return Command(
@@ -127,7 +128,7 @@ def build_tools(db: Session):
     # Tool 2 (required): Edit Interaction
     # ---------------------------------------------------------------
     @tool
-    def edit_interaction(
+    async def edit_interaction(
         instruction: str,
         state: Annotated[AgentState, InjectedState],
         tool_call_id: Annotated[str, InjectedToolCallId],
@@ -146,7 +147,7 @@ def build_tools(db: Session):
             "with their new full values (not diffs). Use the same field names as the record. "
             + FORM_FIELDS_SPEC
         )
-        resp = extraction_llm.invoke(
+        resp = await extraction_llm.ainvoke(
             [
                 SystemMessage(content="You update structured CRM records precisely. Reply with JSON only."),
                 HumanMessage(content=prompt),
@@ -157,12 +158,12 @@ def build_tools(db: Session):
         updated_form = {**current_form, **{k: v for k, v in changes.items() if v not in (None, "")}}
 
         if updated_form.get("id"):
-            row = db.get(models.Interaction, updated_form["id"])
+            row = await db.get(models.Interaction, updated_form["id"])
             if row:
                 for field, value in changes.items():
                     if hasattr(row, field) and value not in (None, ""):
                         setattr(row, field, value)
-                db.commit()
+                await db.commit()
 
         changed_fields = ", ".join(changes.keys()) or "no recognizable fields"
         return Command(
@@ -177,7 +178,7 @@ def build_tools(db: Session):
     # Tool 3: Suggest Follow-ups
     # ---------------------------------------------------------------
     @tool
-    def suggest_followups(
+    async def suggest_followups(
         state: Annotated[AgentState, InjectedState],
         tool_call_id: Annotated[str, InjectedToolCallId],
     ) -> Command:
@@ -194,7 +195,7 @@ def build_tools(db: Session):
             'JSON array of strings, e.g. ["Schedule follow-up meeting in 2 weeks", ...].\n\n'
             f"{json.dumps(current_form)}"
         )
-        resp = extraction_llm.invoke(
+        resp = await extraction_llm.ainvoke(
             [
                 SystemMessage(content="You are a pharma sales-enablement assistant. Reply with a JSON array only."),
                 HumanMessage(content=prompt),
@@ -209,10 +210,10 @@ def build_tools(db: Session):
         updated_form = {**current_form, "ai_suggested_followups": suggestions}
 
         if updated_form.get("id"):
-            row = db.get(models.Interaction, updated_form["id"])
+            row = await db.get(models.Interaction, updated_form["id"])
             if row:
                 row.ai_suggested_followups = suggestions
-                db.commit()
+                await db.commit()
 
         return Command(
             update={
@@ -226,7 +227,7 @@ def build_tools(db: Session):
     # Tool 4: Search & Add Material / Sample
     # ---------------------------------------------------------------
     @tool
-    def search_and_add_catalog_item(
+    async def search_and_add_catalog_item(
         query: str,
         kind: Literal["material", "sample"],
         state: Annotated[AgentState, InjectedState],
@@ -239,11 +240,9 @@ def build_tools(db: Session):
         sharing/distributing something, e.g. "add the OncoBoost brochure".
         """
         model_cls = models.Material if kind == "material" else models.Sample
-        match_row = (
-            db.query(model_cls)
-            .filter(model_cls.name.ilike(f"%{query}%"))
-            .first()
-        )
+        stmt = select(model_cls).filter(model_cls.name.ilike(f"%{query}%"))
+        result = await db.execute(stmt)
+        match_row = result.scalars().first()
         current_form = state.get("form", {})
         field = "materials_shared" if kind == "material" else "samples_distributed"
         existing = list(current_form.get(field, []))
@@ -261,10 +260,10 @@ def build_tools(db: Session):
         updated_form = {**current_form, field: existing}
 
         if updated_form.get("id"):
-            row = db.get(models.Interaction, updated_form["id"])
+            row = await db.get(models.Interaction, updated_form["id"])
             if row:
                 setattr(row, field, existing)
-                db.commit()
+                await db.commit()
 
         return Command(
             update={
@@ -278,7 +277,7 @@ def build_tools(db: Session):
     # Tool 5: Summarize Voice Note
     # ---------------------------------------------------------------
     @tool
-    def summarize_voice_note(
+    async def summarize_voice_note(
         transcript: str,
         state: Annotated[AgentState, InjectedState],
         tool_call_id: Annotated[str, InjectedToolCallId],
@@ -293,7 +292,7 @@ def build_tools(db: Session):
             "Summarize this field rep's voice note into 2-5 concise bullet points "
             f"suitable for a CRM 'Topics Discussed' field:\n\n{transcript}"
         )
-        resp = extraction_llm.invoke(
+        resp = await extraction_llm.ainvoke(
             [
                 SystemMessage(content="You write terse, factual CRM summaries."),
                 HumanMessage(content=prompt),
@@ -307,10 +306,10 @@ def build_tools(db: Session):
         updated_form = {**current_form, "topics_discussed": merged_topics}
 
         if updated_form.get("id"):
-            row = db.get(models.Interaction, updated_form["id"])
+            row = await db.get(models.Interaction, updated_form["id"])
             if row:
                 row.topics_discussed = merged_topics
-                db.commit()
+                await db.commit()
 
         return Command(
             update={
