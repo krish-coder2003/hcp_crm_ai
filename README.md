@@ -4,8 +4,7 @@
 
 An AI-first "Log HCP Interaction" screen for pharma field reps. The left panel is a **read-only** interaction form; the right panel is an **AI Assistant chat**. Every field on the form is populated and edited exclusively by a LangGraph agent — there is no manual form-filling, per the assignment's automation requirement.
 
-![AI-First Pharma CRM UI Mockup](<img width="959" height="413" alt="image" src="https://github.com/user-attachments/assets/e4b3b190-b53e-49b5-8125-ecb89c1c46e7" />
-)
+<img src="https://github.com/user-attachments/assets/e4b3b190-b53e-49b5-8125-ecb89c1c46e7" width="100%" alt="AI-First Pharma CRM UI Mockup" />
 
 ## Tech stack
 
