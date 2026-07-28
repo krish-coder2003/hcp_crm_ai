@@ -183,12 +183,12 @@ backend/
 
 frontend/
   src/
-    store/                 Redux Toolkit: interactionSlice (form), chatSlice (messages)
-    api/client.js           fetch wrapper for /api/chat
+    store/                 Redux Toolkit: interactionSlice.ts, chatSlice.ts, store.ts, hooks.ts
+    api/client.ts          fetch wrapper for /api/chat
     components/
-      LogInteractionScreen.jsx   split-screen layout
-      InteractionForm.jsx         read-only left panel
-      ChatPanel.jsx                right panel chat UI
+      LogInteractionScreen.tsx   split-screen layout
+      InteractionForm.tsx         read-only left panel
+      ChatPanel.tsx                right panel chat UI
     styles/index.css         Inter font + layout matching the provided mockup
 ```
 
