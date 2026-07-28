@@ -1,11 +1,12 @@
 import json
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 from langchain_core.messages import AIMessage
 from sqlalchemy import select
 
-from app.agent.tools import build_tools
 from app import models
+from app.agent.tools import build_tools
 
 
 @pytest.mark.asyncio
@@ -158,6 +159,7 @@ async def test_search_and_add_catalog_item(db_session):
     })
     await db_session.refresh(db_interaction)
     assert "Unknown Brochure" in db_interaction.materials_shared
+    assert "Unknown Brochure" in command_fallback.update["form"]["materials_shared"]
 
 
 @pytest.mark.asyncio

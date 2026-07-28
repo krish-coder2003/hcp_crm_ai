@@ -1,16 +1,16 @@
-from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import models
 from app.database import get_db
 from app.schemas import InteractionState
-from app import models
 
 router = APIRouter(prefix="/interactions", tags=["interactions"])
 
 
-@router.get("", response_model=List[InteractionState])
+@router.get("", response_model=list[InteractionState])
 async def list_interactions(db: AsyncSession = Depends(get_db)):
     """List all logged interactions, most recent first. Read-only: per the
     assignment, interactions are only ever created/edited via the AI agent

@@ -1,8 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
-from unittest.mock import AsyncMock, patch, MagicMock
 from langchain_core.messages import AIMessage
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
 

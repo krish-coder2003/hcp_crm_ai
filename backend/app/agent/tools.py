@@ -1,20 +1,20 @@
+import datetime as dt
 import json
 import re
 import uuid
-import datetime as dt
-from typing import Annotated, List, Literal, Optional
+from typing import Annotated, Literal
 
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 from langchain_core.tools.base import InjectedToolCallId
-from langchain_core.messages import ToolMessage, SystemMessage, HumanMessage
 from langgraph.prebuilt import InjectedState
 from langgraph.types import Command
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import models
 from app.agent.llm import get_extraction_llm
 from app.agent.state import AgentState
-from app import models
 
 
 def _parse_json_block(raw: str) -> dict:
@@ -203,7 +203,7 @@ def build_tools(db: AsyncSession):
         )
         match = re.search(r"\[.*\]", resp.content, re.DOTALL)
         try:
-            suggestions: List[str] = json.loads(match.group(0)) if match else []
+            suggestions: list[str] = json.loads(match.group(0)) if match else []
         except json.JSONDecodeError:
             suggestions = []
 

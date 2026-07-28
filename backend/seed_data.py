@@ -3,8 +3,9 @@ Populates a handful of demo HCPs, materials and samples so the
 search_and_add_catalog_item tool and HCP autocomplete have something to find.
 """
 import asyncio
-from app.database import SessionLocal, Base, engine
+
 from app import models
+from app.database import Base, SessionLocal, engine
 
 
 async def seed():

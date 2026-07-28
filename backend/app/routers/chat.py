@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agent.graph import build_agent_graph
 from app.database import get_db
 from app.schemas import ChatMessageIn, ChatMessageOut, InteractionState
-from app.agent.graph import build_agent_graph
 
 router = APIRouter(tags=["chat"])
 

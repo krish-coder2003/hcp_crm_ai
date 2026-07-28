@@ -1,4 +1,5 @@
-from typing import Annotated, List, Dict, Any, TypedDict
+from typing import Annotated, Any, TypedDict
+
 from langgraph.graph.message import add_messages
 
 
@@ -14,5 +15,5 @@ class AgentState(TypedDict):
     """
 
     messages: Annotated[list, add_messages]
-    form: Dict[str, Any]
-    tool_calls_made: List[str]
+    form: dict[str, Any]
+    tool_calls_made: list[str]

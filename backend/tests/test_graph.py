@@ -1,10 +1,10 @@
 import json
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage
 
 from app.agent.graph import build_agent_graph
-from app import models
 
 
 @pytest.mark.asyncio

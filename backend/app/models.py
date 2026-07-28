@@ -1,9 +1,9 @@
-import uuid
 import datetime as dt
-
-from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Enum, JSON
-from sqlalchemy.orm import relationship
 import enum
+import uuid
+
+from sqlalchemy import JSON, Column, DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
