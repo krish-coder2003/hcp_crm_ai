@@ -1,4 +1,3 @@
-import React from "react";
 import LogInteractionScreen from "./components/LogInteractionScreen";
 
 export default function App() {

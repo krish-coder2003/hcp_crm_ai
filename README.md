@@ -53,6 +53,17 @@ START → agent (Groq LLM + tools bound) → tools_condition
 - Control loops back to `agent` so it can give a one-line confirmation of what changed,
   then the graph ends.
 
+### Loading and Error Handling in the Chat UI
+
+To handle real-world API behaviors, the Chat UI implements robust loading and error states:
+
+1. **Slow API Response (API is Slow)**:
+   - When a chat message is sent, the UI immediately transitions to a loading state: it sets `isSending: true`, disables the chat input field and the "Log" button (preventing double submissions), and renders a message bubble containing a pulsing three-dot loading animation ("Thinking...").
+2. **Network Failures (API Fails)**:
+   - If the HTTP request fails due to network loss, server downtime, or CORS issues, the frontend dispatches `sendFailed`. The loading state is cleared, and a visually distinct error message styled with a light-red background, dark-red text, and a warning icon (`⚠️`) is appended to the chat window (e.g., `"⚠️ Sorry, something went wrong: Failed to fetch"`).
+3. **LLM/Agent Errors (LLM/Backend Errors)**:
+   - If the backend encounters a LangGraph execution or LLM error, it responds with a non-200 status code containing error details. The frontend's `sendChatMessage` wrapper intercepts the non-OK response, throws an error with the details, and displays it in the same light-red warning message block in the chat history.
+
 ### The 5 LangGraph tools
 
 | Tool | Purpose |

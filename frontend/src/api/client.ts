@@ -1,6 +1,18 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
-export async function sendChatMessage(message, currentState, threadId) {
+import { InteractionState } from "../store/interactionSlice";
+
+export interface ChatResponse {
+  reply: string;
+  tool_calls: string[];
+  updated_state: InteractionState;
+}
+
+export async function sendChatMessage(
+  message: string,
+  currentState: InteractionState,
+  threadId: string
+): Promise<ChatResponse> {
   const res = await fetch(`${BASE_URL}/api/v1/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -16,5 +28,5 @@ export async function sendChatMessage(message, currentState, threadId) {
     throw new Error(detail || `Request failed with status ${res.status}`);
   }
 
-  return res.json(); // { reply, tool_calls, updated_state }
+  return res.json() as Promise<ChatResponse>;
 }

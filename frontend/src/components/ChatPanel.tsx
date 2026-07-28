@@ -1,19 +1,19 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { sendChatMessage } from "../api/client";
 import { messageSent, replyReceived, sendFailed } from "../store/chatSlice";
 import { formUpdated } from "../store/interactionSlice";
 
 export default function ChatPanel() {
-  const dispatch = useDispatch();
-  const { messages, isSending, threadId } = useSelector((state) => state.chat);
-  const currentForm = useSelector((state) => state.interaction);
+  const dispatch = useAppDispatch();
+  const { messages, isSending, threadId } = useAppSelector((state) => state.chat);
+  const currentForm = useAppSelector((state) => state.interaction);
   const [input, setInput] = useState("");
-  const scrollRef = useRef(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-  }, [messages]);
+    scrollRef.current?.scrollTo?.({ top: scrollRef.current.scrollHeight });
+  }, [messages, isSending]);
 
   async function handleSend() {
     const text = input.trim();
@@ -30,12 +30,12 @@ export default function ChatPanel() {
       );
       dispatch(formUpdated(updated_state));
       dispatch(replyReceived({ reply, toolCalls: tool_calls }));
-    } catch (err) {
-      dispatch(sendFailed(err.message));
+    } catch (err: any) {
+      dispatch(sendFailed(err.message || "An unknown error occurred"));
     }
   }
 
-  function handleKeyDown(e) {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") handleSend();
   }
 
@@ -49,13 +49,19 @@ export default function ChatPanel() {
       <div className="chat-panel__messages" ref={scrollRef}>
         {messages.map((m) => (
           <div key={m.id} className={`message message--${m.role}`}>
+            {m.role === "error" && <span style={{ marginRight: 6 }}>⚠️</span>}
             {m.text}
             {m.toolCalls && m.toolCalls.length > 0 && (
               <div className="message__tools">tool used: {m.toolCalls.join(", ")}</div>
             )}
           </div>
         ))}
-        {isSending && <div className="message message--assistant">Thinking…</div>}
+        {isSending && (
+          <div className="message message--assistant message--loading" data-testid="loading-indicator">
+            <span>Thinking</span>
+            <div className="dot-flashing"></div>
+          </div>
+        )}
       </div>
 
       <div className="chat-panel__input-row">

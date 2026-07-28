@@ -1,7 +1,12 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../store/hooks";
 
-function Value({ children, placeholder = "—" }) {
+interface ValueProps {
+  children?: React.ReactNode;
+  placeholder?: string;
+}
+
+function Value({ children, placeholder = "—" }: ValueProps) {
   const isEmpty =
     children === undefined ||
     children === null ||
@@ -13,7 +18,11 @@ function Value({ children, placeholder = "—" }) {
   return <div className="value">{children}</div>;
 }
 
-function ChipList({ items }) {
+interface ChipListProps {
+  items: string[];
+}
+
+function ChipList({ items }: ChipListProps) {
   if (!items || items.length === 0) {
     return <div className="value placeholder">No items added</div>;
   }
@@ -29,7 +38,7 @@ function ChipList({ items }) {
 }
 
 export default function InteractionForm() {
-  const form = useSelector((state) => state.interaction);
+  const form = useAppSelector((state) => state.interaction);
 
   return (
     <div className="form-panel">

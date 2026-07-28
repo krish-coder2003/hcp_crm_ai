@@ -1,4 +1,3 @@
-import React from "react";
 import InteractionForm from "./InteractionForm";
 import ChatPanel from "./ChatPanel";
 

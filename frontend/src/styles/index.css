@@ -244,3 +244,72 @@ body {
   background: #a5b4fc;
   cursor: not-allowed;
 }
+
+/* ---------------- Loading and Error States ---------------- */
+
+.message--loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 38px;
+}
+
+.dot-flashing {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 5px;
+  background-color: #312e81;
+  color: #312e81;
+  animation: dot-flashing 1s infinite linear alternate;
+  animation-delay: 0.5s;
+  display: inline-block;
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
+.dot-flashing::before, .dot-flashing::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+
+.dot-flashing::before {
+  left: -12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 5px;
+  background-color: #312e81;
+  color: #312e81;
+  animation: dot-flashing 1s infinite linear alternate;
+  animation-delay: 0s;
+}
+
+.dot-flashing::after {
+  left: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 5px;
+  background-color: #312e81;
+  color: #312e81;
+  animation: dot-flashing 1s infinite linear alternate;
+  animation-delay: 1s;
+}
+
+@keyframes dot-flashing {
+  0% {
+    background-color: #312e81;
+  }
+  50%, 100% {
+    background-color: rgba(49, 46, 129, 0.2);
+  }
+}
+
+.message--error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fee2e2;
+  align-self: flex-start;
+  font-weight: 500;
+}
