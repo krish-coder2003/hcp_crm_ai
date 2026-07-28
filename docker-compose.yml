@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: hcp-crm-db
+    environment:
+      POSTGRES_USER: hcp_user
+      POSTGRES_PASSWORD: hcp_pass
+      POSTGRES_DB: hcp_crm
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hcp_user -d hcp_crm"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hcp-crm-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://hcp_user:hcp_pass@db:5432/hcp_crm
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=gemma2-9b-it
+      - GROQ_FALLBACK_MODEL=llama-3.3-70b-versatile
+      - FRONTEND_ORIGIN=http://localhost:5173
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:8000
+    container_name: hcp-crm-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

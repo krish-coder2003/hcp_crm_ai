@@ -86,6 +86,30 @@ Postgres-only type, so the same models work against MySQL if you'd rather use th
 the assignment, either is acceptable) — just point `DATABASE_URL` at a MySQL driver
 (e.g. `mysql+pymysql://...`) and install `pymysql` instead of `psycopg2-binary`.
 
+## Running with Docker Compose (Recommended)
+
+To spin up the entire application stack (Postgres database, FastAPI backend, and React frontend) using a single command:
+
+### 1. Configure Environment
+Create a `.env` file in the root directory and add your Groq API key:
+```bash
+cp .env.example .env
+# Open .env and populate GROQ_API_KEY
+```
+
+### 2. Launch the Application
+Run Docker Compose:
+```bash
+docker compose up --build
+```
+This command automatically:
+- Starts a Postgres database container (`db`).
+- Performs alembic database migrations (`alembic upgrade head`) and seeds mock data (`seed_data.py`).
+- Launches the FastAPI backend on `http://localhost:8000`.
+- Compiles the React frontend into Nginx and serves it on `http://localhost:5173`.
+
+Verify by opening `http://localhost:5173` in your browser.
+
 ## Running it locally
 
 ### 1. Backend
