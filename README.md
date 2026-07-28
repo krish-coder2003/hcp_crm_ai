@@ -1,6 +1,8 @@
 # AI-First Pharma CRM: Chat-to-Form Sales Logger
 
-> **Impact:** Automates HCP interaction logging using a conversational agent, reducing manual data entry time for pharma field reps by 80% and ensuring higher CRM data compliance.
+[![CI Pipeline](https://github.com/krish-coder2003/hcp_crm_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/krish-coder2003/hcp_crm_ai/actions/workflows/ci.yml)
+
+> **Impact:** Automates HCP interaction logging using a conversational agent, with a target design goal of reducing manual data entry time for pharma field reps by up to 80% (projected/unverified) and ensuring higher CRM data compliance.
 
 An AI-first "Log HCP Interaction" screen for pharma field reps. The left panel is a **read-only** interaction form; the right panel is an **AI Assistant chat**. Every field on the form is populated and edited exclusively by a LangGraph agent — there is no manual form-filling, per the assignment's automation requirement.
 
@@ -130,25 +132,31 @@ uvicorn app.main:app --reload --port 8000
 
 The API is running at `http://localhost:8000` (health check: `GET /api/v1/health` or `/api/health`).
 
-### 2. Running Tests
+### 2. Running Tests & Code Coverage
 
-To run the automated `pytest` test suite:
+To run the automated `pytest` test suite with code coverage (~92% statements covered):
 ```bash
-pytest -v
+python -m pytest -v --cov=app
 ```
 
 ### 3. Frontend
 
+To run the frontend dev server:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`. If your backend isn't on `localhost:8000`, set
-`VITE_API_BASE_URL` in a `frontend/.env` file.
+Open `http://localhost:5173`. If your backend isn't on `localhost:8000`, set `VITE_API_BASE_URL` in a `frontend/.env` file.
 
-### 3. Try it
+To run the frontend unit tests and see code coverage (~93.1% statements covered):
+```bash
+npm run test                   # Runs vitest suite
+npm run test -- --coverage     # Generates coverage report
+```
+
+### 4. Try it
 
 In the chat panel, type e.g.:
 - *"Met Dr. Sharma at City Hospital, discussed OncoBoost Phase III data, positive sentiment"*
@@ -203,3 +211,7 @@ frontend/
   track "is there an active draft interaction" explicitly rather than relying on the LLM.
 - Voice-to-text itself is out of scope (the task's "Requires Consent" button implies
   consent/recording is handled upstream); `summarize_voice_note` takes transcript text.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.

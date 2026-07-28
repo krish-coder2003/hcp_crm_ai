@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1785220137108" clover="3.2.0">
+  <project timestamp="1785220137109" name="All files">
+    <metrics statements="53" coveredstatements="51" conditionals="37" coveredconditionals="32" methods="22" coveredmethods="20" elements="112" coveredelements="103" complexity="0" loc="53" ncloc="53" packages="3" files="6" classes="6"/>
+    <package name="components">
+      <metrics statements="32" coveredstatements="31" conditionals="34" coveredconditionals="29" methods="15" coveredmethods="14"/>
+      <file name="ChatPanel.tsx" path="C:\Users\krish\Downloads\hcp-crm-ai\hcp-crm-ai\frontend\src\components\ChatPanel.tsx">
+        <metrics statements="20" coveredstatements="19" conditionals="17" coveredconditionals="13" methods="8" coveredmethods="7"/>
+        <line num="8" count="9" type="stmt"/>
+        <line num="9" count="17" type="stmt"/>
+        <line num="10" count="17" type="stmt"/>
+        <line num="11" count="9" type="stmt"/>
+        <line num="12" count="9" type="stmt"/>
+        <line num="14" count="9" type="stmt"/>
+        <line num="15" count="7" type="stmt"/>
+        <line num="19" count="2" type="stmt"/>
+        <line num="20" count="2" type="cond" truecount="3" falsecount="1"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="25" count="2" type="stmt"/>
+        <line num="26" count="2" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="34" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="39" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="42" count="9" type="stmt"/>
+        <line num="51" count="15" type="stmt"/>
+        <line num="70" count="2" type="stmt"/>
+      </file>
+      <file name="InteractionForm.tsx" path="C:\Users\krish\Downloads\hcp-crm-ai\hcp-crm-ai\frontend\src\components\InteractionForm.tsx">
+        <metrics statements="12" coveredstatements="12" conditionals="17" coveredconditionals="16" methods="7" coveredmethods="7"/>
+        <line num="11" count="16" type="cond" truecount="4" falsecount="1"/>
+        <line num="15" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="16" count="7" type="stmt"/>
+        <line num="18" count="9" type="stmt"/>
+        <line num="26" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="32" count="3" type="stmt"/>
+        <line num="41" count="4" type="stmt"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="98" count="6" type="stmt"/>
+        <line num="123" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="store">
+      <metrics statements="19" coveredstatements="18" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="4"/>
+      <file name="chatSlice.ts" path="C:\Users\krish\Downloads\hcp-crm-ai\hcp-crm-ai\frontend\src\store\chatSlice.ts">
+        <metrics statements="12" coveredstatements="12" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="3"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="33" count="2" type="stmt"/>
+        <line num="38" count="2" type="stmt"/>
+        <line num="39" count="2" type="stmt"/>
+        <line num="40" count="2" type="stmt"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="44" count="1" type="stmt"/>
+        <line num="45" count="1" type="stmt"/>
+        <line num="48" count="1" type="stmt"/>
+        <line num="49" count="1" type="stmt"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="60" count="2" type="stmt"/>
+      </file>
+      <file name="hooks.ts" path="C:\Users\krish\Downloads\hcp-crm-ai\hcp-crm-ai\frontend\src\store\hooks.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+      </file>
+      <file name="interactionSlice.ts" path="C:\Users\krish\Downloads\hcp-crm-ai\hcp-crm-ai\frontend\src\store\interactionSlice.ts">
+        <metrics statements="5" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="1"/>
+        <line num="19" count="2" type="stmt"/>
+        <line num="35" count="2" type="stmt"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="44" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="test">
+      <metrics statements="2" coveredstatements="2" conditionals="3" coveredconditionals="3" methods="2" coveredmethods="2"/>
+      <file name="test-utils.tsx" path="C:\Users\krish\Downloads\hcp-crm-ai\hcp-crm-ai\frontend\src\test\test-utils.tsx">
+        <metrics statements="2" coveredstatements="2" conditionals="3" coveredconditionals="3" methods="2" coveredmethods="2"/>
+        <line num="27" count="5" type="stmt"/>
+        <line num="30" count="5" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
