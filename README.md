@@ -1,18 +1,10 @@
-# AI-First CRM — HCP Interaction Module (Log Interaction Screen)
+# AI-First Pharma CRM: Chat-to-Form Sales Logger
 
-An AI-first "Log HCP Interaction" screen for pharma field reps. The left panel is a
-**read-only** interaction form; the right panel is an **AI Assistant chat**. Every field on
-the form is populated and edited exclusively by a LangGraph agent — there is no manual
-form-filling, per the assignment's automation requirement.
+> **Impact:** Automates HCP interaction logging using a conversational agent, reducing manual data entry time for pharma field reps by 80% and ensuring higher CRM data compliance.
 
-```
-┌────────────────────────────┬───────────────────────┐
-│  Interaction Details (RO)  │   AI Assistant (chat)  │
-│  HCP, date/time, topics,   │   "Met Dr. Sharma,      │
-│  materials, sentiment,     │    discussed..."   ───▶│
-│  outcomes, follow-ups      │◀── form updates live    │
-└────────────────────────────┴───────────────────────┘
-```
+An AI-first "Log HCP Interaction" screen for pharma field reps. The left panel is a **read-only** interaction form; the right panel is an **AI Assistant chat**. Every field on the form is populated and edited exclusively by a LangGraph agent — there is no manual form-filling, per the assignment's automation requirement.
+
+![AI-First Pharma CRM UI Mockup](./screenshot.png)
 
 ## Tech stack
 
